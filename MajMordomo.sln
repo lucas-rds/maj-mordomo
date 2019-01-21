@@ -5,6 +5,10 @@ VisualStudioVersion = 15.0.28307.136
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MajMordomo", "MajMordomo\MajMordomo.csproj", "{326A18AE-4AD7-470D-8E91-2AC9C420E03B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MajMordomoClient", "MajMordomoClient\MajMordomoClient.csproj", "{88754E6F-1805-4265-95F1-AF59D2F4126B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MajMordomoWorker", "MajMordomoWorker\MajMordomoWorker.csproj", "{C6445623-A79F-4F3A-AE65-99167FB7AA49}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +19,14 @@ Global
 		{326A18AE-4AD7-470D-8E91-2AC9C420E03B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{326A18AE-4AD7-470D-8E91-2AC9C420E03B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{326A18AE-4AD7-470D-8E91-2AC9C420E03B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{88754E6F-1805-4265-95F1-AF59D2F4126B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{88754E6F-1805-4265-95F1-AF59D2F4126B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{88754E6F-1805-4265-95F1-AF59D2F4126B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{88754E6F-1805-4265-95F1-AF59D2F4126B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C6445623-A79F-4F3A-AE65-99167FB7AA49}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C6445623-A79F-4F3A-AE65-99167FB7AA49}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C6445623-A79F-4F3A-AE65-99167FB7AA49}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C6445623-A79F-4F3A-AE65-99167FB7AA49}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

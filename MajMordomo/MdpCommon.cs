@@ -13,8 +13,8 @@ namespace MajMordomo
         public static readonly TimeSpan HEARTBEAT_EXPIRY =
             TimeSpan.FromMilliseconds(HEARTBEAT_INTERVAL.TotalMilliseconds * HEARTBEAT_LIVENESS);
 
-        public static readonly string MDPW_WORKER = "MDPW01";
-        public static readonly string MDPC_CLIENT = "MDPC01";
+        public const string MDPW_WORKER = "MDPW01";
+        public const string MDPC_CLIENT = "MDPC01";
 
         //public static readonly string READY = "001";
         //public static readonly string REQUEST = "002";

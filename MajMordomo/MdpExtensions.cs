@@ -36,7 +36,25 @@ namespace MajMordomo
             return cmd.ToString("X");
         }
 
-        public static void DumpString(this string format, params object[] args)
+        public static string ToHexString(this byte[] hex)
+        {
+            if (hex == null)
+            {
+                return null;
+            }
+            if (hex.Length == 0)
+            {
+                return string.Empty;
+            }
+            var s = new StringBuilder();
+            foreach (byte b in hex)
+            {
+                s.Append(b.ToString("x2"));
+            }
+            return s.ToString();
+        }
+
+        public static void Log(this string format, params object[] args)
         {
             // if you dont wanna see utc timeshift, remove zzz and use DateTime.UtcNow instead
             Console.WriteLine("[{0}] - {1}", string.Format("{0:yyyy-MM-ddTHH:mm:ss:fffffff zzz}", DateTime.Now), string.Format(format, args));
@@ -49,21 +67,21 @@ namespace MajMordomo
         /// <param name="zmsg"></param>
         /// <param name="format"></param>
         /// <param name="args"></param>
-        public static void DumpZmsg(this ZMessage zmsg, string format = null, params object[] args)
+        public static void LogEachFrame(this ZMessage zmsg, string format = null, params object[] args)
         {
             if (!string.IsNullOrWhiteSpace(format))
-                format.DumpString(args);
+                format.Log(args);
             using (var dmsg = zmsg.Duplicate())
                 foreach (var zfrm in dmsg)
                 {
-                    zfrm.DumpZfrm();
+                    zfrm.LogFrame();
                 }
         }
 
-        public static void DumpZfrm(this ZFrame zfrm, string format = null, params object[] args)
+        public static void LogFrame(this ZFrame zfrm, string format = null, params object[] args)
         {
             if (!string.IsNullOrWhiteSpace(format))
-                format.DumpString(args);
+                format.Log(args);
 
             byte[] data = zfrm.Read();
             long size = zfrm.Length;
@@ -74,7 +92,7 @@ namespace MajMordomo
                 if (data[i] < 32 || data[i] > 127)
                     isText = false;
             string datastr = isText ? Encoding.UTF8.GetString(data) : data.ToHexString();
-            "\tD: [{0,3:D3}]:{1}".DumpString(size, datastr);
+            "\tD: [{0,3:D3}]:{1}".Log(size, datastr);
         }
     }
 }

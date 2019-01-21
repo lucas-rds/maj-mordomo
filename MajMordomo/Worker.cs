@@ -61,11 +61,10 @@ namespace MajMordomo
 
             if (Service != null)
             {
-                Service.Waiting.Remove(this);
-                Service.Workers--;
+                Service.Workers.Remove(this);
             }
 
-            Broker.Waiting.Remove(this);
+            Broker.WaitingWorkers.Remove(this);
             if (Broker.Workers.ContainsKey(IdString))
                 Broker.Workers.Remove(IdString);
         }
@@ -88,19 +87,18 @@ namespace MajMordomo
             msg.Wrap(Identity.Duplicate());
 
             if (Broker.Verbose)
-                msg.DumpZmsg("I: sending '{0:X}|{0}' to worker", command.ToMdCmd());
+                msg.LogEachFrame("I: sending '{0:X}|{0}' to worker", command.ToMdCmd());
 
             Broker.Socket.Send(msg);
         }
 
         // This worker is now waiting for work //
-        public void Waiting()
+        public void StartWaiting()
         {
             // queue to broker and service waiting lists//
-            if (Broker == null)
-                throw new InvalidOperationException();
-            Broker.Waiting.Add(this);
-            Service.Waiting.Add(this);
+            if (Broker == null) throw new InvalidOperationException();
+            Broker.WaitingWorkers.Add(this);
+            Service.Workers.Add(this);
             Expiry = DateTime.UtcNow + MdpCommon.HEARTBEAT_EXPIRY;
             Service.Dispatch(null);
         }

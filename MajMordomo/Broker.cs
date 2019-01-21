@@ -32,7 +32,7 @@ namespace MajMordomo
         public Dictionary<string, Worker> Workers;
 
         // Waiting workers
-        public List<Worker> Waiting;
+        public List<Worker> WaitingWorkers;
 
         // When to send HEARTBEAT
         public DateTime HeartbeatAt;
@@ -51,7 +51,7 @@ namespace MajMordomo
 
             Services = new Dictionary<string, Service>(); //new HashSet<Service>();
             Workers = new Dictionary<string, Worker>(); //new HashSet<Worker>();
-            Waiting = new List<Worker>();
+            WaitingWorkers = new List<Worker>();
 
             HeartbeatAt = DateTime.UtcNow + MdpCommon.HEARTBEAT_INTERVAL;
         }
@@ -101,7 +101,7 @@ namespace MajMordomo
         {
             Socket.Bind(endpoint);
             // if you dont wanna see utc timeshift, remove zzz and use DateTime.UtcNow instead//
-            "I: MDP broker/0.2.0 is active at {0}".DumpString(endpoint);
+            "I: MDP broker/0.2.0 is active at {0}".Log(endpoint);
         }
 
         //  This method processes one READY, REPLY, HEARTBEAT, or
@@ -117,7 +117,7 @@ namespace MajMordomo
             //string id_string;
             using (var sfrm = sender.Duplicate())
             {
-                var idString = sfrm.Read().ToHexString();
+                string idString = sfrm.Read().ToHexString();
                 isWorkerReady = Workers.ContainsKey(idString);
             }
             Worker worker = RequireWorker(sender);
@@ -138,9 +138,8 @@ namespace MajMordomo
                         // Attach worker to service and mark as idle
                         using (ZFrame serviceFrame = msg.Pop())
                         {
-                            worker.Service = RequireService(serviceFrame);
-                            worker.Service.Workers++;
-                            worker.Waiting();
+                            worker.Service = RequireService(serviceFrame.ToString());
+                            worker.StartWaiting();
                         }
                     }
                 }
@@ -155,7 +154,7 @@ namespace MajMordomo
                         msg.Prepend(new ZFrame(MdpCommon.MDPC_CLIENT));
                         msg.Wrap(client);
                         Socket.Send(msg);
-                        worker.Waiting();
+                        worker.StartWaiting();
                     }
                     else
                     {
@@ -177,7 +176,7 @@ namespace MajMordomo
                     worker.Delete(false);
                 else
                 {
-                    msg.DumpZmsg("E: invalid input message");
+                    msg.LogEachFrame("E: invalid input message");
                 }
             }
         }
@@ -192,7 +191,7 @@ namespace MajMordomo
 
             using (ZFrame serviceFrame = msg.Pop())
             {
-                Service service = RequireService(serviceFrame);
+                Service service = RequireService(serviceFrame.ToString());
 
                 // Set reply return identity to client sender
                 msg.Wrap(sender.Duplicate());
@@ -206,7 +205,7 @@ namespace MajMordomo
                     {
                         string name = msg.Last().ToString();
                         returnCode = Services.ContainsKey(name)
-                                     && Services[name].Workers > 0
+                                     && Services[name].Workers.Count > 0
                                         ? "200"
                                         : "404";
                     }
@@ -239,16 +238,16 @@ namespace MajMordomo
 
         public void Purge()
         {
-            Worker worker = Waiting.FirstOrDefault();
+            Worker worker = WaitingWorkers.FirstOrDefault();
             while (worker != null)
             {
                 if (DateTime.UtcNow < worker.Expiry)
                     break;   // Worker is alive, we're done here
                 if (Verbose)
-                    "I: deleting expired worker: '{0}'".DumpString(worker.IdString);
+                    "I: deleting expired worker: '{0}'".Log(worker.IdString);
 
                 worker.Delete(false);
-                worker = Waiting.FirstOrDefault();
+                worker = WaitingWorkers.FirstOrDefault();
             }
         }
 
@@ -256,29 +255,15 @@ namespace MajMordomo
 
         //  Lazy constructor that locates a service by name or creates a new
         //  service if there is no service already with that name.
-        public Service RequireService(ZFrame serviceFrame)
+        public Service RequireService(string serviceName)
         {
-            if (serviceFrame == null)
-                throw new InvalidOperationException();
-
-            string name = serviceFrame.ToString();
-
-            Service service;
-            if (Services.ContainsKey(name))
+            if (Services.ContainsKey(serviceName))
             {
-                service = Services[name];
-            }
-            else
-            {
-                service = new Service(this, name);
-                Services[name] = service;
-
-                //zhash_freefn(self->workers, id_string, s_worker_destroy);
-                if (Verbose)
-                    "I: added service: '{0}'".DumpString(name);
+                return Services[serviceName];
             }
 
-            return service;
+            if (Verbose) "I: added service: '{0}'".Log(serviceName);
+            return Services[serviceName] = new Service(this, serviceName);
         }
 
         //  Here is the implementation of the methods that work on a worker:
@@ -305,7 +290,7 @@ namespace MajMordomo
                 worker = new Worker(idString, this, identity);
                 Workers[idString] = worker;
                 if (Verbose)
-                    "I: registering new worker: '{0}'".DumpString(idString);
+                    "I: registering new worker: '{0}'".Log(idString);
             }
 
             return worker;

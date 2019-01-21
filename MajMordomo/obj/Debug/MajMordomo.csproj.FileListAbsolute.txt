@@ -1,0 +1,16 @@
+C:\Development\MajMordomo\MajMordomo\obj\Debug\MajMordomo.csprojAssemblyReference.cache
+C:\Development\MajMordomo\MajMordomo\obj\Debug\MajMordomo.csproj.CoreCompileInputs.cache
+C:\Development\MajMordomo\MajMordomo\bin\Debug\amd64\libzmq.dll
+C:\Development\MajMordomo\MajMordomo\bin\Debug\amd64\libsodium.dll
+C:\Development\MajMordomo\MajMordomo\bin\Debug\i386\libzmq.dll
+C:\Development\MajMordomo\MajMordomo\bin\Debug\i386\libsodium.dll
+C:\Development\MajMordomo\MajMordomo\bin\Debug\amd64\libzmq.so
+C:\Development\MajMordomo\MajMordomo\bin\Debug\i386\libzmq.so
+C:\Development\MajMordomo\MajMordomo\bin\Debug\MajMordomo.exe.config
+C:\Development\MajMordomo\MajMordomo\bin\Debug\MajMordomo.exe
+C:\Development\MajMordomo\MajMordomo\bin\Debug\MajMordomo.pdb
+C:\Development\MajMordomo\MajMordomo\bin\Debug\ZeroMQ.dll
+C:\Development\MajMordomo\MajMordomo\bin\Debug\ZeroMQ.xml
+C:\Development\MajMordomo\MajMordomo\obj\Debug\MajMordomo.csproj.CopyComplete
+C:\Development\MajMordomo\MajMordomo\obj\Debug\MajMordomo.exe
+C:\Development\MajMordomo\MajMordomo\obj\Debug\MajMordomo.pdb

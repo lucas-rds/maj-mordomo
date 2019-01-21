@@ -8,7 +8,7 @@ namespace MajMordomo
     {
         //  Finally, here is the main task. We create a new broker instance and
         //  then process messages on the broker Socket:
-        public static void MDBroker(string[] args)
+        public static void Main(string[] args)
         {
             CancellationTokenSource cancellor = new CancellationTokenSource();
             Console.CancelKeyPress += (s, ea) =>
@@ -17,11 +17,9 @@ namespace MajMordomo
                 cancellor.Cancel();
             };
 
-            var verbose = true;
-
-            using (Broker broker = new Broker(verbose))
+            using (var broker = new Broker(verbose: true))
             {
-                broker.Bind("tcp://*:5555");
+                broker.Bind("tcp://127.0.0.1:5555");
                 // Get and process messages forever or until interrupted
                 while (true)
                 {
@@ -30,25 +28,26 @@ namespace MajMordomo
                         broker.ShutdownContext();
 
                     var p = ZPollItem.CreateReceiver();
-                    ZMessage msg;
-                    ZError error;
-                    if (broker.Socket.PollIn(p, out msg, out error, MdpCommon.HEARTBEAT_INTERVAL))
+                    if (broker.Socket.PollIn(p, out var message, out var error, MdpCommon.HEARTBEAT_INTERVAL))
                     {
-                        if (verbose)
-                            msg.DumpZmsg("I: received message:");
+                        message.LogEachFrame("I: received message:");
 
-                        using (ZFrame sender = msg.Pop())
-                        using (ZFrame empty = msg.Pop())
-                        using (ZFrame header = msg.Pop())
+                        using (ZFrame sender = message.Pop())
+                        using (ZFrame empty = message.Pop())
+                        using (ZFrame header = message.Pop())
                         {
-                            if (header.ToString().Equals(MdpCommon.MDPC_CLIENT))
-                                broker.ClientMsg(sender, msg);
-                            else if (header.ToString().Equals(MdpCommon.MDPW_WORKER))
-                                broker.WorkerMsg(sender, msg);
-                            else
+                            switch (header.ToString())
                             {
-                                msg.DumpZmsg("E: invalid message:");
-                                msg.Dispose();
+                                case MdpCommon.MDPC_CLIENT:
+                                    broker.ClientMsg(sender, message);
+                                    break;
+                                case MdpCommon.MDPW_WORKER:
+                                    broker.WorkerMsg(sender, message);
+                                    break;
+                                default:
+                                    message.LogEachFrame("E: invalid message:");
+                                    message.Dispose();
+                                    break;
                             }
                         }
                     }
@@ -56,7 +55,7 @@ namespace MajMordomo
                     {
                         if (Equals(error, ZError.ETERM))
                         {
-                            "W: interrupt received, shutting down…".DumpString();
+                            "W: interrupt received, shutting down…".Log();
                             break; // Interrupted
                         }
                         if (!Equals(error, ZError.EAGAIN))
@@ -68,7 +67,7 @@ namespace MajMordomo
                     {
                         broker.Purge();
 
-                        foreach (var waitingworker in broker.Waiting)
+                        foreach (var waitingworker in broker.WaitingWorkers)
                         {
                             waitingworker.Send(MdpCommon.MdpwCmd.HEARTBEAT.ToHexString(), null, null);
                         }

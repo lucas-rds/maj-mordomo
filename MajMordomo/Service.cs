@@ -7,27 +7,20 @@ namespace MajMordomo
     public class Service : IDisposable
     {
         // Broker Instance
-        public Broker Broker { get; protected set; }
-
-        // Service Name
-        public string Name { get; protected set; }
-
+        private readonly Broker _broker;
         // List of client requests
-        public List<ZMessage> Requests { get; protected set; }
-
+        private readonly List<ZMessage> _requests;
         // List of waiting workers
-        public List<Worker> Waiting { get; protected set; }
-
-        // How many workers we are
-        public int Workers;
-        //ToDo check workers var
+        public List<Worker> Workers { get; set; }
+        // Service Name
+        public readonly string Name;
 
         internal Service(Broker broker, string name)
         {
-            Broker = broker;
+            _broker = broker;
+            _requests = new List<ZMessage>();
+            Workers = new List<Worker>();
             Name = name;
-            Requests = new List<ZMessage>();
-            Waiting = new List<Worker>();
         }
 
         ~Service()
@@ -45,7 +38,7 @@ namespace MajMordomo
         {
             if (disposing)
             {
-                foreach (var r in Requests)
+                foreach (var r in _requests)
                 {
                     // probably obsolete?
                     using (r)
@@ -59,17 +52,16 @@ namespace MajMordomo
         public void Dispatch(ZMessage msg)
         {
             if (msg != null) // queue msg if any
-                Requests.Add(msg);
+                _requests.Add(msg);
 
-            Broker.Purge();
-            while (Waiting.Count > 0
-                   && Requests.Count > 0)
+            _broker.Purge();
+            while (Workers.Count > 0 && _requests.Count > 0)
             {
-                Worker worker = Waiting[0];
-                Waiting.RemoveAt(0);
-                Broker.Waiting.Remove(worker);
-                ZMessage reqMsg = Requests[0];
-                Requests.RemoveAt(0);
+                Worker worker = Workers[0];
+                Workers.RemoveAt(0);
+                _broker.WaitingWorkers.Remove(worker);
+                ZMessage reqMsg = _requests[0];
+                _requests.RemoveAt(0);
                 using (reqMsg)
                     worker.Send(MdpCommon.MdpwCmd.REQUEST.ToHexString(), null, reqMsg);
             }
